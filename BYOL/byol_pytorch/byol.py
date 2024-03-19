@@ -211,22 +211,25 @@ class BYOL(nn.Module) :
         #sample_one, sample_two = x, x
         sample_one = sample_one.to(self.device, dtype=torch.float32)
         sample_two = sample_two.to(self.device, dtype=torch.float32)
-        sample_one.requires_grad_()
-        sample_two.requires_grad_()
+        #sample_one.requires_grad_()
+        #sample_two.requires_grad_()
         #print(sample_one)
         #print(sample_two)
         #print(sample_one.get_device())
         #print(sample_two.get_device())
         
         samples = torch.cat((sample_one, sample_two), dim=0)
-        print(samples.shape)
+        #print(samples.shape)
+        #print(samples.requires_grad)
         
         online_projections, _ = self.online_encoder(samples)
         online_predictions = self.online_predictor(online_projections)
+        #print(online_projections.requires_grad)
         
         online_pred_one, online_pred_two = online_predictions.chunk(2, dim=0)
-        online_pred_one.requires_grad_()
-        online_pred_two.requires_grad_()
+        #print(online_pred_one.requires_grad)
+        #online_pred_one.requires_grad_()
+        #online_pred_two.requires_grad_()
         
         with torch.no_grad() :
             #self.target_encoder = self.online_encoder
@@ -237,13 +240,15 @@ class BYOL(nn.Module) :
             #target_projections, _ = self.target_encoder(samples)
             target_projections, _ = target_encoder(samples)
             target_projections = target_projections.detach()
+            #print(target_projections.requires_grad)
             
             target_proj_one, target_proj_two = target_projections.chunk(2, dim=0)
-            target_proj_one.requires_grad_()
-            target_proj_two.requires_grad_()
+            #target_proj_one.requires_grad_()
+            #target_proj_two.requires_grad_()
             
-            loss_one = loss_fn(online_pred_one, target_proj_two.detach())
-            loss_two = loss_fn(online_pred_two, target_proj_one.detach())
+        loss_one = loss_fn(online_pred_one, target_proj_two.detach())
+        loss_two = loss_fn(online_pred_two, target_proj_one.detach())
+        #print(loss_one.requires_grad)
             #loss_one.requires_grad_()
             #loss_two.requires_grad_()
             
@@ -264,6 +269,7 @@ def pretext_generator(m, x):
       # Parameters
     no, dim = x.shape
     x_copy = x.cpu()
+    #x_copy = x.cpu().detach().numpy()
       # Randomly (and column-wise) shuffle data
     x_bar = np.zeros([no, dim])
     
@@ -280,6 +286,7 @@ def pretext_generator(m, x):
     x_tilde = x_copy * (1-m) + x_bar * m
     
 
+    #return torch.Tensor(x_tilde)
     return x_tilde
         
     
