@@ -17,3 +17,13 @@ The Cancer Genome Atlas ([[TCGA]](https://portal.gdc.cancer.gov/)) collected man
 *clinical information (e.g., smoking status)
 *molecular analyte metadata (e.g., sample portion weight)
 *molecular characterization data (e.g., gene expression values)
+
+## Contributing
+
+``` console
+git clone git@github.com:kdradjat/SSRL_RNAseq.git
+cd SSRL_RNAseq
+python3 -m venv venv
+source venv/bin/activate
+pip install -e .
+```
