@@ -1,0 +1,6 @@
+/venv/
+/data/
+*.egg-info
+*.pyc
+*.ipynb_checkpoints
+__pycache__

@@ -20,7 +20,7 @@ setup(
                       'pandas>=1.0.3',
                       'keras>=2.3.1',
                       'argparse>=1.1',
-                      'sklearn>=0.21.3',
+                      'scikit-learn',
                       'xgboost',
                       'tensorflow>=1.15.0'
                       ],
