@@ -2,57 +2,45 @@ from itertools import chain
 
 import numpy as np
 from sklearn.utils import check_random_state, shuffle
-from sklearn.model_selection import StratifiedGroupKFold, train_test_split
+from sklearn.model_selection import StratifiedGroupKFold
 
 __all__ = ["pretrain_downstream_split", "GroupKShotsFold"]
 
 
 def pretrain_downstream_split(
         *arrays,
-        pretrain_size=None,
-        downstream_size=None,
+        pretrain_size,
+        downstream_size,
         groups,
-        stratify=None,
+        stratify,
         random_state=None,
 ):
     """
     Split given `arrays` into pretrain and downstream sets.
-    The pretrain set contains `pretrain_size` groups.
-    The pretrain set contains `downstream_size` groups.
-    Notice that the sizes are not numbers of samples but number of groups.
     """
 
-    unique_groups, groups = np.unique(groups, return_inverse=True)
-    unique_groups = len(unique_groups)
+    if pretrain_size < downstream_size:
+        raise NotImplementedError
 
-    # Attribute the group's most common class to each group
-    if stratify is not None:
-        stratify = np.asarray(stratify)
+    indices = np.arange(len(stratify))
 
-        unique_classes, stratify = np.unique(stratify, return_inverse=True)
-        unique_classes = len(unique_classes)
+    n_splits = len(indices) // downstream_size
 
-        s = np.zeros((unique_groups, unique_classes), dtype=np.int64)
-        np.add.at(s, (groups, stratify), 1)
+    cv = StratifiedGroupKFold(n_splits=n_splits, shuffle=True, random_state=random_state)
+    pretrain, downstream = next(cv.split(indices, stratify, groups))
 
-        stratify = s.argmax(axis=1)
+    pretrain = shuffle(pretrain, random_state=random_state)
+    downstream = shuffle(downstream, random_state=random_state)
 
-    # Split
-    pretrain_groups, downstream_groups = train_test_split(
-        np.arange(unique_groups),
-        train_size=pretrain_size,
-        test_size=downstream_size,
-        shuffle=True,
-        stratify=stratify,
-        random_state=random_state,
-    )
+    pretrain = pretrain[: pretrain_size]
+    downstream = downstream[: downstream_size]
 
-    pretrain = np.isin(groups, pretrain_groups)
-    downstream = np.isin(groups, downstream_groups)
+    if len(pretrain) != pretrain_size or len(downstream) != downstream_size:
+        raise ValueError
 
     return list(
         chain.from_iterable(
-            (a[pretrain], a[downstream]) for a in arrays
+            (a[pretrain], a[downstream]) for a in map(np.asarray, arrays)
         )
     )
 
