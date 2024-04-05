@@ -1,6 +1,6 @@
 import torch
-from byol_pytorch.byol import BYOL
-from byol_pytorch.NN import Encoder
+from ssrl_rnaseq.byol.byol import BYOL
+from ssrl_rnaseq.byol.NN import Encoder
 from torchvision import models
 
 import sys

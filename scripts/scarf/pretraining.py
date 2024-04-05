@@ -18,10 +18,10 @@ from sklearn.preprocessing import StandardScaler
 from torch.optim import Adam, SGD
 from torch.utils.data import DataLoader
 
-from scarf.loss import NTXent, BarlowTwins
-from scarf.model import SCARF, MLP, SCARF_modified
-from cancerclassification.data import *
-from cancerclassification.NN import *
+from ssrl_rnaseq.scarf.scarf.loss import NTXent, BarlowTwins
+from ssrl_rnaseq.scarf.scarf.model import SCARF, MLP, SCARF_modified
+from ssrl_rnaseq.scarf.cancerclassification.data import *
+from ssrl_rnaseq.scarf.cancerclassification.NN import *
 
 from example.dataset import ExampleDataset
 from example.utils import dataset_embeddings, fix_seed, train_epoch

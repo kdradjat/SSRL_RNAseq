@@ -8,16 +8,16 @@ from data_loader import load_mnist_data
 #from supervised_models import logit, xgb_model, mlp
 #from sklearn.model_selection import train_test_split
 
-from vime_self import vime_self, vime_self_modified, DAE
-from vime_semi import vime_semi
-from vime_utils import perf_metric
-from utils import *
+from ssrl_rnaseq.vime.vime_self import vime_self, vime_self_modified, DAE
+from ssrl_rnaseq.vime.vime_semi import vime_semi
+from ssrl_rnaseq.vime.vime_utils import perf_metric
+from ssrl_rnaseq.vime.utils import *
 from keras.models import load_model
 from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
 
 # load data
-x_train = read_process_data('../data/TCGA/train_data.parquet', '../data/TCGA/label.parquet')
+x_train = read_process_data('../../data/TCGA/train_data.parquet', '../../data/TCGA/label.parquet')
 y_label = x_train[:,0]
 x_train = x_train[:,1:]
 

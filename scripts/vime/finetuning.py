@@ -8,16 +8,16 @@ warnings.filterwarnings("ignore")
 from supervised_models import logit, mlp
 from sklearn.model_selection import train_test_split
 
-from vime_self import vime_self, vime_self_modified, DAE
-from vime_semi import vime_semi
-from vime_utils import perf_metric
-from utils import *
+from ssrl_rnaseq.vime.vime_self import vime_self, vime_self_modified, DAE
+from ssrl_rnaseq.vime.vime_semi import vime_semi
+from ssrl_rnaseq.vime.vime_utils import perf_metric
+from ssrl_rnaseq.vime.utils import *
 from keras.models import load_model
 
 
 # load data
 print('Loading Data...')
-dataset = read_process_data('../data/TCGA/nopretrain_data.parquet', '../data/TCGA/label.parquet')
+dataset = read_process_data('../../data/TCGA/nopretrain_data.parquet', '../../data/TCGA/label.parquet')
 
 
 # Finetuning

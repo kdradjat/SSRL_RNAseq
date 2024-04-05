@@ -1,4 +1,4 @@
-from itertools import chain, compress
+from itertools import chain
 
 import numpy as np
 from sklearn.utils import check_random_state, shuffle

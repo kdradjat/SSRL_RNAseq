@@ -8,17 +8,17 @@ warnings.filterwarnings("ignore")
 #from supervised_models import logit, xgb_model, mlp
 from sklearn.model_selection import train_test_split
 
-from vime_self import vime_self, vime_self_modified, DAE
-from vime_semi import vime_semi
-from vime_utils import perf_metric
-from utils import *
+from ssrl_rnaseq.vime.vime_self import vime_self, vime_self_modified, DAE
+from ssrl_rnaseq.vime.vime_semi import vime_semi
+from ssrl_rnaseq.vime.vime_utils import perf_metric
+from ssrl_rnaseq.vime.utils import *
 
 import matplotlib.pyplot as plt
 import keras as keras
 
 # Load Data
 print('Loading Data...')
-x_unlabel = read_process_data('../data/TCGA/pretrain_data.parquet', '../data/TCGA/label.parquet')
+x_unlabel = read_process_data('../../data/TCGA/pretrain_data.parquet', '../../data/TCGA/label.parquet')
 y_unlabel = x_unlabel[:,0]
 x_unlabel = x_unlabel[:,1:]
 
