@@ -1,4 +1,4 @@
-from itertools import chain
+from itertools import chain, compress
 
 import numpy as np
 from sklearn.utils import check_random_state, shuffle
@@ -17,6 +17,7 @@ def pretrain_downstream_split(
 ):
     """
     Split given `arrays` into pretrain and downstream sets.
+    Uses StratifiedGroupKFold under the hood.
     """
 
     if pretrain_size < downstream_size:
@@ -40,7 +41,11 @@ def pretrain_downstream_split(
 
     return list(
         chain.from_iterable(
-            (a[pretrain], a[downstream]) for a in map(np.asarray, arrays)
+            (
+                _index(a, pretrain),
+                _index(a, downstream),
+            )
+            for a in arrays
         )
     )
 
@@ -85,3 +90,17 @@ class GroupKShotsFold:
             test = shuffle(test, random_state=random_state)
 
             yield train, test
+
+
+def _index(X, indices):
+    """
+    From sklearn.
+    """
+
+    if hasattr(X, "iloc"):
+        return X.iloc[indices]
+
+    elif hasattr(X, "shape"):
+        return X[indices]
+
+    return [X[i] for i in indices]
