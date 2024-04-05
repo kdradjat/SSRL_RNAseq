@@ -23,5 +23,7 @@ setup(
                       'sklearn>=0.21.3',
                       'xgboost',
                       'tensorflow>=1.15.0'
-                      ]
+                      ],
+    package_dir={"":"src"},
+    packages=["ssrl_rnaseq"]
 )
