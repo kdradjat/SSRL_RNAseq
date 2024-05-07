@@ -9,7 +9,7 @@ from keras.models import Sequential
 from keras.layers import Dense, BatchNormalization
 from keras.callbacks import EarlyStopping
 
-from vime_utils import convert_matrix_to_vector, convert_vector_to_matrix
+from ssrl_rnaseq.vime.vime_utils import convert_matrix_to_vector, convert_vector_to_matrix
 
 
 

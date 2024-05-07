@@ -29,7 +29,7 @@ from keras.models import Sequential, Model
 from keras.layers import Dense, BatchNormalization, Input
 from keras.callbacks import EarlyStopping
 
-from vime_utils import convert_matrix_to_vector, convert_vector_to_matrix
+from ssrl_rnaseq.vime.vime_utils import convert_matrix_to_vector, convert_vector_to_matrix
 
 #%% 
 def logit(x_train, y_train, x_test):

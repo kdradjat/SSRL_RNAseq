@@ -19,7 +19,7 @@ from keras.models import Model
 from keras import models
 from tensorflow import keras
 
-from vime_utils import mask_generator, pretext_generator
+from ssrl_rnaseq.vime.vime_utils import mask_generator, pretext_generator
 
 
 def vime_self (x_unlab, p_m, alpha, parameters):
