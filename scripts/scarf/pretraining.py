@@ -15,20 +15,20 @@ from sklearn.preprocessing import StandardScaler
 from torch.optim import Adam, SGD
 from torch.utils.data import DataLoader
 
-from scarf.loss import NTXent, BarlowTwins
-from scarf.model import SCARF_baseline, MLP, MLP_baseline, SCARF_4layers, SCARF_SubTab
-from cancerclassification.data import *
-from cancerclassification.NN import *
+from ssrl_rnaseq.scarf.loss import NTXent, BarlowTwins
+from ssrl_rnaseq.scarf.model import SCARF_baseline, MLP, MLP_baseline, SCARF_4layers, SCARF_SubTab
+from ssrl_rnaseq.scarf.scarf_utils import *
+from ssrl_rnaseq.scarf.dataset import ExampleDataset
 
-from example.dataset import ExampleDataset
-from example.utils import dataset_embeddings, fix_seed, train_epoch, valid_loss_f
+from ssrl_rnaseq.data import *
+from ssrl_rnaseq.training_utils import *
 
 #################
 
 
 # Load data
-#x_unlabel = read_process_data_TCGA_unlabel('../data/TCGA/pretrain_data.parquet')
-x_unlabel = read_process_data_TCGA_unlabel('../data/TCGA/100Best_pretrain_data.parquet.gzip')
+x_unlabel = read_process_data_TCGA_unlabel('../data/TCGA/pretrain_data.parquet')
+#x_unlabel = read_process_data_TCGA_unlabel('../data/TCGA/100Best_pretrain_data.parquet.gzip')
 #x_unlabel = x_unlabel[:,1:]
 
 
@@ -79,35 +79,39 @@ model = SCARF_SubTab(
 """
 
 import time
-epochs = 2000
+#epochs = 2000
+epochs = 1000
 
-#optimizer = SGD(model.parameters(), lr=1e-3, momentum=0.9)
 optimizer = Adam(model.parameters(), lr = 1e-4)
 ntxent_loss = NTXent()
 
 
 loss_history = []
 valid_loss_history = []
+train_loss_history = []
 
 start = time.time()
 for epoch in range(1, epochs+1) :
     valid_loss = valid_loss_f(model, ntxent_loss, valid_loader, device)
     valid_loss_history.append(valid_loss)
+    train_loss = valid_loss_f(model, ntxent_loss, train_loader, device)
+    train_loss_history.append(train_loss)
     epoch_loss = train_epoch(model, ntxent_loss, train_loader, optimizer, device)
     loss_history.append(epoch_loss)
     
     if epoch % 10 == 0 :
         print(f'Epoch {epoch}/{epochs} : loss = {loss_history[-1]}')
         # save model as .pt
-        torch.save(model.state_dict(), 'saved_models/scarf_4layers_100Best.pt')
+        torch.save(model.state_dict(), 'saved_models/scarf_4layers_test.pt')
 
 end = time.time()
 print(end-start)
 
 
 # save history
-df = pd.DataFrame(columns=['epoch', 'loss', 'valid_loss'])
+df = pd.DataFrame(columns=['epoch', 'loss', 'valid_loss', 'train_loss'])
 df['epoch'] = [i for i in range(epochs)]
 df['loss'] = loss_history
 df['valid_loss'] = valid_loss_history
-df.to_csv('training_csv/scarf_4layers_100Best.csv')
+df['train_loss'] = train_loss_history
+df.to_csv('training_csv/scarf_4layers_test.csv')

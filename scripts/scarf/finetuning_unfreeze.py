@@ -1,5 +1,3 @@
-import sys
-
 import matplotlib.pyplot as plt
 import pandas as pd
 import torch
@@ -13,26 +11,23 @@ from sklearn.preprocessing import StandardScaler
 from torch.optim import Adam
 from torch.utils.data import DataLoader
 
-sys.path.append("../")
+from ssrl_rnaseq.scarf.loss import NTXent
+from ssrl_rnaseq.scarf.model import SCARF, SCARF_baseline, MLP, MLP_head_simple, LastLayer, SCARF_SubTab, SCARF_4layers
+from ssrl_rnaseq.scarf.dataset import ExampleDataset
+from ssrl_rnaseq.scarf.scarf_utils import *
 
-from scarf.loss import NTXent
-from scarf.model import SCARF, SCARF_baseline, MLP, MLP_head_simple, LastLayer, SCARF_SubTab, SCARF_4layers
-
-from example.dataset import ExampleDataset
-from example.utils import dataset_embeddings, fix_seed, train_epoch
-
-from cancerclassification.data import *
-from cancerclassification.NN import *
+from ssrl_rnaseq.data import *
+from ssrl_rnaseq.training_utils import *
 
 ##############
 
 
 # Load Data
 print('Loading Data...')
-#dataset_pretrain = read_process_data_TCGA('../data/TCGA/pretrain_data.parquet', '../data/TCGA/label.parquet')
-#dataset = read_process_data_TCGA('../data/TCGA/nopretrain_data.parquet', '../data/TCGA/label.parquet')
-dataset_pretrain = read_process_data_TCGA('../data/TCGA/100Best_pretrain_data.parquet.gzip', '../data/TCGA/label.parquet')
-dataset = read_process_data_TCGA('../data/TCGA/100Best_nopretrain_data.parquet.gzip', '../data/TCGA/label.parquet')
+dataset_pretrain = read_process_data_TCGA('../data/TCGA/pretrain_data.parquet', '../data/TCGA/label.parquet')
+dataset = read_process_data_TCGA('../data/TCGA/nopretrain_data.parquet', '../data/TCGA/label.parquet')
+#dataset_pretrain = read_process_data_ARCHS4('../data/ARCHS4/specific/pretrain_specific_data.parquet.gzip', '../data/ARCHS4/specific/pretrain_specific_metadata.parquet.gzip')
+#dataset = read_process_data_ARCHS4('../data/ARCHS4/specific/nopretrain_specific_data.parquet.gzip', '../data/ARCHS4/specific/nopretrain_specific_metadata.parquet.gzip')
 nb_classes = len(np.unique(dataset[:,0]))
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -42,7 +37,7 @@ pretrain_ds = ExampleDataset(
 )
 
 # Training
-name = "scarf_unfreeze_4layers_100Best"
+name = "scarf_unfreeze_4layers"
 logger = LogResults(name, ["prop"])
 bs = 8
 prop_list = np.arange(0.02, 1.0, 0.01)
@@ -50,7 +45,7 @@ corruption_rate = 0.5
 dropout = 0.1
 
 
-for i in range(5) :
+for i in range(3) :
     for prop in prop_list :
         # logger
         logger.update_hyps([prop])
@@ -66,7 +61,7 @@ for i in range(5) :
             dropout=dropout
         ).to(device)
 
-        pretrained_model.load_state_dict(torch.load("saved_models/scarf_4layers_100Best.pt"), strict=False)
+        pretrained_model.load_state_dict(torch.load("saved_models/scarf_4layers.pt"), strict=False)
         # isolate encoder part
         encoder = pretrained_model.encoder
 
@@ -102,3 +97,4 @@ for i in range(5) :
         logger.show_progression()
 
     logger.save_csv()
+
