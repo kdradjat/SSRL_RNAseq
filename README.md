@@ -14,6 +14,6 @@ The methods tested so far are :
 
 ## Dataset
 The Cancer Genome Atlas ([[TCGA]](https://portal.gdc.cancer.gov/)) collected many types of data for each of over 20,000 tumor and normal samples. Each step in the Genome Characterization Pipeline generated numerous data points, such as:
-*clinical information (e.g., smoking status)
-*molecular analyte metadata (e.g., sample portion weight)
-*molecular characterization data (e.g., gene expression values)
+* clinical information (e.g., smoking status)
+* molecular analyte metadata (e.g., sample portion weight)
+* molecular characterization data (e.g., gene expression values)
