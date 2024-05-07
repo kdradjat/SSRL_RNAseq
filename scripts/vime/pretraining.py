@@ -16,6 +16,7 @@ import keras as keras
 # Load Data
 print('Loading Data...')
 x_unlabel = read_process_data_TCGA('../data/TCGA/pretrain_data.parquet', '../data/TCGA/label.parquet')
+#x_unlabel = read_process_data_ARCHS4('../data/ARCHS4/specific/pretrain_specific_data.parquet.gzip', '../data/ARCHS4/specific/pretrain_specific_metadata.parquet.gzip')
 #x_unlabel = read_process_data('../data/TCGA/100Best_pretrain_data.parquet.gzip', '../data/TCGA/label.parquet')
 y_unlabel = x_unlabel[:,0]
 x_unlabel = x_unlabel[:,1:]
@@ -31,17 +32,17 @@ metric = 'acc'
 
 # pre-training
 vime_self_parameters = {}
-vime_self_parameters['batch_size'] = 32
+vime_self_parameters['batch_size'] = 16
 vime_self_parameters['epochs'] = 1000
-vime_self_encoder, history_mask = vime_self_modified(x_unlabel, p_m, alpha, vime_self_parameters)
-#vime_self_encoder, history_mask = DAE(x_unlabel, p_m, alpha, vime_self_parameters)
+#vime_self_encoder, history_mask = vime_self_baseline(x_unlabel, p_m, alpha, vime_self_parameters)
+vime_self_encoder, history_mask = vime_self_4layers(x_unlabel, p_m, alpha, vime_self_parameters)
+#vime_self_encoder, history_mask = vime_self_subtab(x_unlabel, p_m, alpha, vime_self_parameters)
 print(history_mask.history.keys())
 
 if not os.path.exists('saved_models') :
     os.makedirs('saved_models')
     
-file_name = './saved_models/vime_encoder_modified_pm03_1000epochs_validLoss.h5'
-#file_name = './saved_models/DAE_20epochs.h5'
+file_name = './saved_models/vime_4layers.h5'
 
 vime_self_encoder.save(file_name)
 
@@ -55,7 +56,7 @@ df['feature_loss'] = history_mask.history['feature_loss']
 df['val_loss'] = history_mask.history['val_loss']
 df['val_mask_loss'] = history_mask.history['val_mask_loss']
 df['val_feature_loss'] = history_mask.history['val_feature_loss']
-df.to_csv('history_pretraining_vimepm03_1000epochs_validLoss.csv')
+df.to_csv('history_pretraining_vime_4layers.csv')
 
 
 
