@@ -120,6 +120,27 @@ def read_process_data_TCGA_unlabel(
     return np_dataset
 
 
+def read_process_data_ARCHS4(
+    data_path,
+    label_path
+):
+    class_df = pd.read_parquet(label_path)
+    data_df = pd.read_parquet(data_path)
+    labels = class_df["labels"]
+    
+    # encoding cancer names to integers
+    le = preprocessing.LabelEncoder()
+    data_df.insert(0, 'labels', le.fit_transform(class_df["labels"]))
+    print(data_df.columns)
+    np_dataset = data_df.to_numpy(dtype=np.float32)
+
+    # normal standardardization
+    scaler = preprocessing.StandardScaler()
+    np_dataset[:, 1:] = scaler.fit_transform(np_dataset[:, 1:])
+
+    return np_dataset
+
+
 
 def read_process_data_MA(
     data="E-MTAB-3732.data2.parquet", label="classes.parquet", selected_type=None
