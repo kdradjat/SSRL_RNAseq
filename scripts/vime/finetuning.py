@@ -105,7 +105,7 @@ def main():
             x_test, y_test = dataset_test[:,1:], dataset_test[:,0]
 
             # load model
-            vime_self_encoder = load_model(f'./saved_models/{args.model_name}')
+            vime_self_encoder = load_model(f'{args.model_name}')
 
             # finetune model with mlp head
             y_test_hat = wrapper_rework(vime_self_encoder, x_train, y_train, x_test, mlp_parameters)

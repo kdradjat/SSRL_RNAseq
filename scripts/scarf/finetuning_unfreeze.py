@@ -126,7 +126,7 @@ def main():
                 dropout=dropout
             ).to(device)
 
-            pretrained_model.load_state_dict(torch.load(f"saved_models/{args.model_name}.pt"), strict=False)
+            pretrained_model.load_state_dict(torch.load(f"{args.model_name}"), strict=False)
             # isolate encoder part
             encoder = pretrained_model.encoder
 
