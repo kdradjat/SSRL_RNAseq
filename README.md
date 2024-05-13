@@ -17,7 +17,7 @@ The Cancer Genome Atlas ([[TCGA]](https://portal.gdc.cancer.gov/)) collected man
 * clinical information (e.g., smoking status)
 * molecular analyte metadata (e.g., sample portion weight)
 * molecular characterization data (e.g., gene expression values)
-
+Pretraining and finetuning datasets can be found [[here]](https://drive.google.com/drive/folders/13wjd7KRhvVeLaCcsVvXKM7Tnr4HGhdZt?usp=sharing).
 ## Usage
 
 ### SCARF
