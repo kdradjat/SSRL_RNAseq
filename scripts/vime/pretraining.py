@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 
 from ssrl_rnaseq.data import *
 from ssrl_rnaseq.training_utils import *
-from ssrl_rnaseq.vime.vime_self import vime_self, vime_self_modified, DAE
+from ssrl_rnaseq.vime.vime_self import vime_self, vime_self_modified, DAE, vime_self_4layers, vime_self_subtab
 from ssrl_rnaseq.vime.vime_utils import perf_metric
 
 import keras as keras
