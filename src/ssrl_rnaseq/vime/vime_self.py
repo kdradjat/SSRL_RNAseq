@@ -359,3 +359,48 @@ def vime_self_custom(x_unlab, emb_size, depth, p_m, alpha, parameters) :
     encoder = models.Model(inputs=model.input, outputs=layer_output)
     
     return encoder, history
+
+
+def dae(x_unlab, parameters) :
+    # parameters 
+    _, dim = x_unlab.shape
+    epochs = parameters['epochs']
+    batch_size = parameters['batch_size']
+    
+    # Build model
+    inputs = Input(shape=(dim,))
+    # Encoder
+    h1 = Dense(256, activation='relu')(inputs)
+    b1 = BatchNormalization()(h1)
+    h2 = Dense(256, activation='relu')(b1)
+    b2 = BatchNormalization()(h2)
+    h3 = Dense(256, activation='relu')(b2)
+    b3 = BatchNormalization()(h3)
+    h4 = Dense(256, activation='relu')(b3)
+    b4 = BatchNormalization()(h4)
+    
+    # Feature Decoder
+    f1 = Dense(256, activation='relu')(b4)
+    f2 = Dense(256, activation='relu')(f1)
+    f3 = Dense(256, activation='relu')(f2)
+    f4 = Dense(256, activation='relu')(f3)
+    outputs = Dense(dim, activation='sigmoid', name='feature')(f4)
+    
+    #lr_schedule = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=1e-4, decay_steps=10000, decay_rate=0.9)
+    
+    model = Model(inputs=inputs, outputs=outputs)
+    model.compile(optimizer='rmsprop', loss={'feature': 'mean_squared_error'})
+    
+    # Generate corrupted samples
+    m_unlab = mask_generator(p_m, x_unlab)
+    m_label, x_tilde = pretext_generator(m_unlab, x_unlab)
+    
+    # Fit model on unlabeled data
+    history = model.fit(x_tilde, {'feature': x_unlab}, epochs = epochs, batch_size=batch_size, validation_split=0.1)    
+    
+    # Extract Encoder
+    layer_name = model.layers[8].name
+    layer_output = model.get_layer(layer_name).output
+    encoder = models.Model(inputs=model.input, outputs=layer_output)
+    
+    return encoder, history

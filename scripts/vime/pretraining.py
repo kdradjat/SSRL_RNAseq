@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 
 from ssrl_rnaseq.data import *
 from ssrl_rnaseq.training_utils import *
-from ssrl_rnaseq.vime.vime_self import vime_self, vime_self_modified, DAE, vime_self_4layers, vime_self_subtab
+from ssrl_rnaseq.vime.vime_self import vime_self, vime_self_modified, DAE, vime_self_4layers, vime_self_subtab, vime_self_custom, dae
 from ssrl_rnaseq.vime.vime_utils import perf_metric
 
 import keras as keras
@@ -86,6 +86,7 @@ def main():
     vime_self_parameters['epochs'] = args.epoch
     #vime_self_encoder, history_mask = vime_self_baseline(x_unlabel, p_m, alpha, vime_self_parameters)
     vime_self_encoder, history_mask = vime_self_4layers(x_unlabel, p_m, alpha, vime_self_parameters)
+    #vime_self_encoder, history_mask = dae(x_unlabel, vime_self_parameters)
     #vime_self_encoder, history_mask = vime_self_subtab(x_unlabel, p_m, alpha, vime_self_parameters)
 
     if not os.path.exists('saved_models') :
