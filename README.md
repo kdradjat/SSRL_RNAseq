@@ -2,7 +2,7 @@
 
 This repository contains a few state-of-the-art **self-supervised learning** methods for tabular data, which has been a popular topic recently.<br>
 The goal of this repository is to apply these methods to **gene expression data** (TCGA), in order to build good data representations and foundation models.<br>
-
+.
 ## Methods and Papers
 The methods tested so far are : 
 ### Generative Approach :
