@@ -40,12 +40,6 @@ def main():
         help="number of epoch"
     )
     parser.add_argument(
-        "--model_name",
-        default="vime.h5",
-        type=str,
-        help="name given to the pretrained model"
-    )
-    parser.add_argument(
         "--history_name",
         default="history_vime.csv",
         type=str,
@@ -90,38 +84,37 @@ def main():
 
     # Metric
     metric = 'acc'
-
+    
+    emb_size_list = [1024]
+    depth_list = [2, 3, 4, 5, 6, 7, 8, 9, 10]
+    
     # pre-training
-    vime_self_parameters = {}
-    vime_self_parameters['batch_size'] = args.batch_size
-    vime_self_parameters['epochs'] = args.epoch
-    #vime_self_encoder, history_mask = vime_self_baseline(x_unlabel, p_m, alpha, vime_self_parameters)
-    vime_self_encoder, history_mask = vime_self_4layers(x_unlabel, p_m, alpha, vime_self_parameters)
-    #vime_self_encoder, history_mask = dae(x_unlabel, vime_self_parameters)
-    #vime_self_encoder, history_mask = vime_self_subtab(x_unlabel, p_m, alpha, vime_self_parameters)
+    for emb_size in emb_size_list :
+        for depth in depth_list :
+            vime_self_parameters = {}
+            vime_self_parameters['batch_size'] = args.batch_size
+            vime_self_parameters['epochs'] = args.epoch
+            vime_self_encoder, history_mask = vime_self_custom(x_unlabel, emb_size, depth, p_m, alpha, vime_self_parameters)
+            print(history_mask.history.keys())
 
-    if not os.path.exists('saved_models') :
-        os.makedirs('saved_models')
-    
-    file_name = f'./saved_models/{args.model_name}'
+            if not os.path.exists('saved_models') :
+                os.makedirs('saved_models')
 
-    vime_self_encoder.save(file_name)
+            file_name = f'./saved_models/vime_{emb_size}_{depth}.h5'
+
+            vime_self_encoder.save(file_name)
 
 
-    # save history as csv
-    df = pd.DataFrame(columns=['epoch', 'loss', 'mask_loss', 'feature_loss', 'val_loss', 'val_mask_loss', 'val_feature_loss'])
-    df['epoch'] = [i for i in range(vime_self_parameters['epochs'])]
-    df['loss'] = history_mask.history['loss']
-    df['mask_loss'] = history_mask.history['mask_loss']
-    df['feature_loss'] = history_mask.history['feature_loss']
-    df['val_loss'] = history_mask.history['val_loss']
-    df['val_mask_loss'] = history_mask.history['val_mask_loss']
-    df['val_feature_loss'] = history_mask.history['val_feature_loss']
-    df.to_csv(args.history_name)
-    
-
+            # save history as csv
+            df = pd.DataFrame(columns=['epoch', 'loss', 'mask_loss', 'feature_loss', 'val_loss', 'val_mask_loss', 'val_feature_loss'])
+            df['epoch'] = [i for i in range(vime_self_parameters['epochs'])]
+            df['loss'] = history_mask.history['loss']
+            df['mask_loss'] = history_mask.history['mask_loss']
+            df['feature_loss'] = history_mask.history['feature_loss']
+            df['val_loss'] = history_mask.history['val_loss']
+            df['val_mask_loss'] = history_mask.history['val_mask_loss']
+            df['val_feature_loss'] = history_mask.history['val_feature_loss']
+            df.to_csv(f'history_pretraining_vime_{emb_size}_{depth}.csv')
+                
 if __name__ == '__main__' :
     main()
-
-
-

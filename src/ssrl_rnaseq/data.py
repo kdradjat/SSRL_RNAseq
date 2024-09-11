@@ -63,17 +63,11 @@ class FastDataLoader:
 
 def read_process_data_TCGA(
     data_path,
-    label_path
+    label_path,
+    coding_genes=False,
+    coding_genes_file='../data/protein-coding_gene.txt',
+    preprocess_type='standard'
 ):
-    """Reads and processes (including a normal standardardization) the TCGA data.
-
-    Args:
-        data_path (str) : path to dataset
-        label_path (str) : path to classes
-
-    Returns:
-        numpy.ndarray: Numpy array of the processed data.
-    """
     class_df = pd.read_parquet(label_path)
     data_df = pd.read_parquet(data_path)
 
@@ -91,23 +85,19 @@ def read_process_data_TCGA(
     np_dataset = df.to_numpy(dtype=np.float32)
 
     # normal standardardization
-    scaler = preprocessing.StandardScaler()
+    if preprocess_type == 'standard': scaler = preprocessing.StandardScaler()
+    elif preprocess_type == 'minmax': scaler = preprocessing.MinMaxScaler()
     np_dataset[:, 1:] = scaler.fit_transform(np_dataset[:, 1:])
 
     return np_dataset
 
 
 def read_process_data_TCGA_unlabel(
-    data_path
+    data_path,
+    coding_genes=False,
+    coding_genes_file='../data/protein-coding_gene.txt',
+    preprocess_type='standard'
 ):
-    """Reads and processes (including a normal standardardization) the TCGA data.
-
-    Args:
-        data_path (str) : path to dataset
-
-    Returns:
-        numpy.ndarray: Numpy array of the processed data.
-    """
     data_df = pd.read_parquet(data_path)
     data_df = data_df.drop(columns="caseID")
 
@@ -122,7 +112,10 @@ def read_process_data_TCGA_unlabel(
 
 def read_process_data_ARCHS4(
     data_path,
-    label_path
+    label_path,
+    coding_genes=False,
+    coding_genes_file='../data/protein-coding_gene.txt',
+    preprocess_type='standard'
 ):
     class_df = pd.read_parquet(label_path)
     data_df = pd.read_parquet(data_path)
@@ -135,50 +128,38 @@ def read_process_data_ARCHS4(
     np_dataset = data_df.to_numpy(dtype=np.float32)
 
     # normal standardardization
-    scaler = preprocessing.StandardScaler()
+    if preprocess_type == 'standard': scaler = preprocessing.StandardScaler()
+    elif preprocess_type == 'minmax': scaler = preprocessing.MinMaxScaler()
     np_dataset[:, 1:] = scaler.fit_transform(np_dataset[:, 1:])
 
     return np_dataset
 
 
-
-def read_process_data_MA(
-    data="E-MTAB-3732.data2.parquet", label="classes.parquet", selected_type=None
+def read_process_data_ARCHS4_unlabel(
+    data_path,
+    binary=False,
+    coding_genes=False,
+    coding_genes_file='../data/protein-coding_gene.txt',
+    preprocess_type='standard'
 ):
-    """Reads and processes (including a normal standardardization) the MicroArray data.
+    data_df = pd.read_parquet(data_path)
+    
+    if coding_genes:
+        protein_coding_file = pd.read_csv(coding_genes_file, '\t')
+        selected_columns = np.unique(protein_coding_file['ensembl_gene_id'].tolist()).tolist()
+        selected_columns.pop()
+        genes = data_df.columns
+        intersection = list(set(selected_columns) & set(genes))
+        data_df = data_df[intersection]
+        
+    np_dataset = data_df.to_numpy(dtype=np.float32)
 
-    Args:
-        path (str, optional): Path of the folder containing MicroArray's csv files.
-            Defaults to "/home/commun/data/MicroArray/E-MTAB-3732/".
-        selected_type (str, optional): Value can be specified as "patient" or
-            "cell line" to select only a part of the dataset. Defaults to None.
+    # normal standardardization
+    if preprocess_type == 'standard': scaler = preprocessing.StandardScaler()
+    elif preprocess_type == 'minmax': scaler = preprocessing.MinMaxScaler()
+    np_dataset = scaler.fit_transform(np_dataset)
 
-    Returns:
-        numpy.ndarray: Numpy array of the processed data.
-    """
-    class_df = pd.read_parquet(label)
-    data_df = pd.read_parquet(data)
-
-    data_df = data_df.drop(columns=[data_df.columns[0]])
-
-    #  because the columns / rows are inverted in the csv file...
-    data_np = data_df.to_numpy(dtype=np.float32).T
-
-    class_np = class_df["Cancer"].to_numpy()
-    le = preprocessing.LabelEncoder()
-    le.classes_ = ["normal", "cancer"]
-    class_np = le.transform(class_np)
-    class_np = class_np.astype(np.float32)
-
-    if selected_type is not None:
-        selected = (class_df["cell"] == selected_type).to_numpy()
-        class_np = class_np[selected]
-        data_np = data_np[selected]
-
-    scaler = preprocessing.StandardScaler()
-    data_np = scaler.fit_transform(data_np)
-
-    return np.concatenate((np.expand_dims(class_np, axis=0), data_np.T)).T
+    return np_dataset
 
 
 def read_data_TCGA_preprocessed():

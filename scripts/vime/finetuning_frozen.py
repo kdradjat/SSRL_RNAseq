@@ -90,14 +90,13 @@ def main():
     print('Loading Data...')
     dataset = read_process_data_TCGA(args.data_file, args.label_file, coding_genes=args.coding_genes, preprocess_type=args.preprocess_type)
 
-    # Finetuning
-    from scipy.special import softmax
-
-    prop_list = np.arange(0.02, 1.0, 0.01)
+    # Fine-tuning
+    prop_list = np.arange(0.02, 1.01, 0.01)
     csv_history = pd.DataFrame(columns=['test_acc', 'prop'])
 
     # MLP
     mlp_parameters = dict()
+    mlp_parameters['hidden_dim'] = 256
     mlp_parameters['epochs'] = args.epoch
     mlp_parameters['activation'] = args.activation
     mlp_parameters['batch_size'] = args.batch_size
@@ -105,6 +104,7 @@ def main():
     metric = 'acc'
 
     results_pretraining = []
+
 
     for prop in prop_list :
         for i in range(5) :
@@ -118,17 +118,20 @@ def main():
 
             # load model
             vime_self_encoder = load_model(f'{args.model_name}')
+            # get embeddings
+            x_train_hat = vime_self_encoder.predict(x_train)
+            x_test_hat = vime_self_encoder.predict(x_test)
 
-            # finetune model with finetuning head
-            y_test_hat = wrapper_rework(vime_self_encoder, x_train, y_train, x_test, mlp_parameters)
+            # finetune mlp
+            y_test_hat = last_layer(x_train_hat, y_train, x_test_hat, mlp_parameters)
+            #y_test_hat = logit(x_train_hat, y_train, x_test_hat)
+            print(len(np.argmax(y_test_hat, axis=1)))
             results_pretraining.append(perf_metric(metric, y_test, y_test_hat))
+            print(results_pretraining[-1])
 
             # save 
             csv_history.loc[len(csv_history)] = [results_pretraining[-1], prop]
         csv_history.to_csv(args.history_name)
-
-
-
+        
 if __name__ == "__main__" :
     main()
-
