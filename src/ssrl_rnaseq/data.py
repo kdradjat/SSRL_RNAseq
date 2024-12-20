@@ -264,12 +264,13 @@ def generate_indices(data, prop=1, val_prop=0.15, test_prop=0.15, rs=0):
     
     if test_prop != 0 :
         train_idx, test_idx = train_test_split(
-            indices, test_size=test_prop, train_size=None, random_state=rs
+            indices, test_size=test_prop, stratify=data[:,0], train_size=None, random_state=rs
         )
         train_idx, val_idx = train_test_split(
             train_idx,
             test_size=val_prop / (1 - test_prop),
             train_size=None,
+            #stratify=data[train_idx,0],
             random_state=rs,
         )
     else :
@@ -277,6 +278,7 @@ def generate_indices(data, prop=1, val_prop=0.15, test_prop=0.15, rs=0):
             indices,
             test_size=val_prop,
             train_size=None,
+            stratify=data[:,0],
             random_state=rs,
         )
         test_idx=[]
@@ -285,13 +287,31 @@ def generate_indices(data, prop=1, val_prop=0.15, test_prop=0.15, rs=0):
         subtrain_idx = []
         for mode in np.unique(modes):
             candidates = np.array(train_idx)[np.argwhere(modes == mode).flatten()]
+            # adding progressively 
             selected_idx = candidates[: round(len(candidates) * prop)]
+            # random
             #selected_idx = np.random.choice(candidates, int(round(len(candidates)*prop)), replace=False)
             subtrain_idx += selected_idx.tolist()
         train_idx = subtrain_idx
         print(len(train_idx))
 
     return (train_idx, val_idx, test_idx)
+
+def generate_indices_pretraining(data, prop=1, rs=0):
+    indices = list(range(len(data)))
+    if prop != 1:
+        modes = data[:, 0]
+        subtrain_idx = []
+        for mode in np.unique(modes):
+            candidates = np.array(indices)[np.argwhere(modes == mode).flatten()]
+            # adding progressively 
+            selected_idx = candidates[: round(len(candidates) * prop)]
+            # random
+            #selected_idx = np.random.choice(candidates, int(round(len(candidates)*prop)), replace=False)
+            subtrain_idx += selected_idx.tolist()
+        train_idx = subtrain_idx
+
+    return train_idx
 
 
 def compute_loss_weights(data, device=None):

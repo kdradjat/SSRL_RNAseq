@@ -17,7 +17,11 @@ vime_self.py
 from keras.layers import Input, Dense, BatchNormalization
 from keras.models import Model
 from keras import models
+from keras import backend as K
+from keras import metrics
 from tensorflow import keras
+import tensorflow as tf
+import math
 
 from ssrl_rnaseq.vime.vime_utils import mask_generator, pretext_generator
 
@@ -217,6 +221,55 @@ def vime_self_baseline(x_unlab, p_m, alpha, parameters) :
 
 
 
+# Data Generator to handle OOM issues
+# Generator with no shuffle
+class DataGenerator(Sequence):
+    def __init__(self, x_set, m_set, x_true_set, batch_size):
+        self.x = x_set
+        self.m = m_set
+        self.x_true = x_true_set
+        self.batch_size = batch_size
+
+    def __len__(self):
+        return int(np.ceil(len(self.x) / float(self.batch_size)))
+
+    def __getitem__(self, idx):
+        batch_x = self.x[idx * self.batch_size:(idx + 1) * self.batch_size]
+        batch_y = {'mask': self.m[idx * self.batch_size:(idx + 1) * self.batch_size], 'feature': self.x_true[idx * self.batch_size:(idx + 1) * self.batch_size]}
+        return batch_x, batch_y
+    
+# Generator with shuffle by using indexes
+class Generator(Sequence):
+    # Class is a dataset wrapper for better training performance
+    def __init__(self, x_set, m_set, x_true_set, batch_size):
+        self.x, self.m, self.x_true = x_set, m_set, x_true_set
+        self.batch_size = batch_size
+        self.indices = np.arange(self.x.shape[0])
+
+    def __len__(self):
+        return math.ceil(self.x.shape[0] / self.batch_size)
+
+    def __getitem__(self, idx):
+        inds = self.indices[idx * self.batch_size:(idx + 1) * self.batch_size]
+        batch_x = self.x[inds]
+        #batch_y = self.y[inds]
+        batch_y = {'mask': self.m[inds], 'feature': self.x_true[inds]}
+        return batch_x, batch_y
+    
+    def on_epoch_end(self):
+        np.random.shuffle(self.indices)
+    
+def batch_generator(x_set, m_set, x_true_set, batch_size):
+    idx = 0
+    while True:
+        # fill up the batch
+        X_batch = x_set[idx * batch_size:(idx + 1) * batch_size]
+        y1_batch = m_set[idx * batch_size:(idx + 1) * batch_size]
+        y2_batch = x_true_set[idx * batch_size:(idx + 1) * batch_size]
+        idx += 1
+            
+        yield(X_batch, {'mask': y1_batch, 'feature': y2_batch} )
+
 def vime_self_4layers(x_unlab, p_m, alpha, parameters) :
     # parameters 
     _, dim = x_unlab.shape
@@ -256,15 +309,26 @@ def vime_self_4layers(x_unlab, p_m, alpha, parameters) :
     m_unlab = mask_generator(p_m, x_unlab)
     m_label, x_tilde = pretext_generator(m_unlab, x_unlab)
     
+    # data generator to handle OOM issues
+    data_train = Generator(x_tilde, m_label, x_unlab, batch_size)
+    
     # Fit model on unlabeled data
-    history = model.fit(x_tilde, {'mask': m_label, 'feature': x_unlab}, epochs = epochs, batch_size=batch_size, validation_split=0.1)    
+    #history = model.fit(x_tilde, {'mask': m_label, 'feature': x_unlab}, epochs = epochs, batch_size=batch_size, validation_split=0.1)
+    history = model.fit_generator(data_train, epochs = epochs)
+    #history = model.fit_generator(batch_generator(x_tilde, m_label, x_unlab, batch_size), epochs=epochs)
     
     # Extract Encoder
     layer_name = model.layers[8].name
     layer_output = model.get_layer(layer_name).output
     encoder = models.Model(inputs=model.input, outputs=layer_output)
     
+    del encoder
+    del model
+    K.clear_session()
+    tf.compat.v1.reset_default_graph()
+    
     return encoder, history
+    #return history
 
 
 def vime_self_subtab(x_unlab, p_m, alpha, parameters) :

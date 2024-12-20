@@ -1,6 +1,6 @@
 import torch
 from ssrl_rnaseq.byol.byol import BYOL
-from ssrl_rnaseq.byol.NN import Encoder, MLP_head, _4layers, baseline
+from ssrl_rnaseq.byol.NN import Encoder, MLP_head, _4layers, baseline, _Nlayers
 from torchvision import models
 
 from ssrl_rnaseq.data import *
@@ -93,7 +93,7 @@ def main():
         running_loss = 0
         print(f'Epoch {epoch}')
         for batch in dataloader :
-            x, _ = batch
+            x = batch
             loss = learner(x)
             opt.zero_grad()
             loss.backward()
