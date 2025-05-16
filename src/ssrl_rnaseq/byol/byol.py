@@ -69,6 +69,7 @@ def MLP(dim, projection_size, hidden_size=4096) :
         nn.Linear(dim, hidden_size),
         nn.BatchNorm1d(hidden_size),
         nn.ReLU(inplace=True),
+        nn.Dropout(0.2)
         nn.Linear(hidden_size, projection_size)
     )
     return model

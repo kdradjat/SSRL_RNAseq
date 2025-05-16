@@ -279,14 +279,22 @@ def vime_self_4layers(x_unlab, p_m, alpha, parameters) :
     # Build model
     inputs = Input(shape=(dim,))
     # Encoder
-    h1 = Dense(256, activation='relu')(inputs)
+    h1 = Dense(256)(inputs)
     b1 = BatchNormalization()(h1)
-    h2 = Dense(256, activation='relu')(b1)
+    b1 = Activation('relu')(b1)
+    b1 = Dropout(0.2)(b1)
+    h2 = Dense(256)(b1)
     b2 = BatchNormalization()(h2)
-    h3 = Dense(256, activation='relu')(b2)
+    b2 = Activation('relu')(b2)
+    b2 = Dropout(0.2)(b2)
+    h3 = Dense(256)(b2)
     b3 = BatchNormalization()(h3)
-    h4 = Dense(256, activation='relu')(b3)
+    b3 = Activation('relu')(b3)
+    b3 = Dropout(0.2)(b3)
+    h4 = Dense(256)(b3)
     b4 = BatchNormalization()(h4)
+    b4 = Activation('relu')(b4)
+    b4 = Dropout(0.2)(b4)
     # Mask Decoder
     m1 = Dense(256, activation='relu')(b4)
     m2 = Dense(256, activation='relu')(m1)
@@ -318,7 +326,7 @@ def vime_self_4layers(x_unlab, p_m, alpha, parameters) :
     #history = model.fit_generator(batch_generator(x_tilde, m_label, x_unlab, batch_size), epochs=epochs)
     
     # Extract Encoder
-    layer_name = model.layers[8].name
+    layer_name = model.layers[16].name
     layer_output = model.get_layer(layer_name).output
     encoder = models.Model(inputs=model.input, outputs=layer_output)
     
@@ -385,13 +393,17 @@ def vime_self_custom(x_unlab, emb_size, depth, p_m, alpha, parameters) :
     batch_size = parameters['batch_size']
     
     inputs = Input(shape=(dim,))
-    x = Dense(emb_size, activation='relu')(inputs)
+    x = Dense(emb_size)(inputs)
     x = BatchNormalization()(x)
+    x = Activation('relu')(x)
+    x = Dropout(0.2)(x)
     
     # Encoder
     for _ in range(depth-1) :
-        x = Dense(emb_size, activation='relu')(x)
+        x = Dense(emb_size)(x)
         x = BatchNormalization()(x)
+        x = Activation('relu')(x)
+        x = Dropout(0.2)(x)
         
     # Mask Decoder
     m = Dense(emb_size, activation='relu')(x)
@@ -401,7 +413,7 @@ def vime_self_custom(x_unlab, emb_size, depth, p_m, alpha, parameters) :
     
     # Feature Decoder
     f = Dense(emb_size, activation='relu')(x)
-    for _ in range(depth-1) :
+    for _ in range(depth-1):
         f = Dense(emb_size, activation='relu')(f)
     output_2 = Dense(dim, activation='sigmoid', name='feature')(f)
     
@@ -418,7 +430,7 @@ def vime_self_custom(x_unlab, emb_size, depth, p_m, alpha, parameters) :
     history = model.fit(x_tilde, {'mask': m_label, 'feature': x_unlab}, epochs = epochs, batch_size=batch_size, validation_split=0.1)    
     
     # Extract Encoder
-    layer_name = model.layers[depth*2].name
+    layer_name = model.layers[depth*4].name
     layer_output = model.get_layer(layer_name).output
     encoder = models.Model(inputs=model.input, outputs=layer_output)
     

@@ -252,14 +252,22 @@ def scarf_encoder(x_train, y_train, x_test, parameters, hidden_dim=256):
 
   # Build model
   model = Sequential()
-  model.add(Dense(hidden_dim, input_dim = data_dim, activation = act_fn))
+  model.add(Dense(hidden_dim, input_dim = data_dim))
   model.add(BatchNormalization())
-  model.add(Dense(hidden_dim, activation = act_fn))
+  model.add(Activation(act_fn))
+  model.add(Dropout(0.2))
+  model.add(Dense(hidden_dim))
   model.add(BatchNormalization())
-  model.add(Dense(hidden_dim, activation = act_fn))
+  model.add(Activation(act_fn))
+  model.add(Dropout(0.2))
+  model.add(Dense(hidden_dim))
   model.add(BatchNormalization())
-  model.add(Dense(hidden_dim, activation = act_fn))
+  model.add(Activation(act_fn))
+  model.add(Dropout(0.2))
+  model.add(Dense(hidden_dim))
   model.add(BatchNormalization())
+  model.add(Activation(act_fn))
+  model.add(Dropout(0.2))
   model.add(Dense(label_dim, activation = 'softmax'))
   
   model.compile(loss = 'categorical_crossentropy', optimizer='adam', 
@@ -390,12 +398,16 @@ def mlp_builder(x_train, y_train, x_test, emb_size, encoder_depth, parameters):
 
   # Build model
   inputs = Input(shape=(data_dim,))
-  x = Dense(emb_size, activation='relu')(inputs)
+  x = Dense(emb_size)(inputs)
   x = BatchNormalization()(x)
+  x = Activation('relu')(x)
+  x = Dropout(0.2)(x)
     
   for _ in range(encoder_depth-1) :
-    x = Dense(emb_size, activation='relu')(x)
+    x = Dense(emb_size)(x)
     x = BatchNormalization()(x)
+    x = Activation('relu')(x)
+    x = Dropout(0.2)(x)
     
   output = Dense(label_dim, activation='softmax')(x)
 

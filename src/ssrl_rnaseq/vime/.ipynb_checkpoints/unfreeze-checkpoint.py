@@ -12,8 +12,7 @@ from keras.callbacks import EarlyStopping
 from ssrl_rnaseq.vime.vime_utils import convert_matrix_to_vector, convert_vector_to_matrix
 
 
-
-def wrapper(encoder, x_train, y_train, x_test, parameters):
+def wrapper_rework(encoder, x_train, y_train, x_test, parameters):
   """Multi-layer perceptron (MLP).
   
   Args: 
@@ -59,25 +58,23 @@ def wrapper(encoder, x_train, y_train, x_test, parameters):
   # Build model
   model = Sequential()
   model.add(encoder)
-  model.add(Dense(hidden_dim, input_dim = data_dim, activation = act_fn))
-  model.add(BatchNormalization())
-  model.add(Dense(hidden_dim, activation = act_fn))
-  model.add(BatchNormalization())
   model.add(Dense(label_dim, activation = 'softmax'))
   
   model.compile(loss = 'categorical_crossentropy', optimizer='adam', 
                 metrics = ['acc'])
   
   es = EarlyStopping(monitor='val_loss', mode = 'min', 
-                     verbose = 1, restore_best_weights=True, patience=50)
+                     verbose = 1, restore_best_weights=True, patience=30)
   
   # Fit model on training dataset
-  model.fit(x_train, y_train, validation_data = (x_valid, y_valid), 
+  history = model.fit(x_train, y_train, validation_data = (x_valid, y_valid), 
             epochs = epochs_size, batch_size = batch_size, 
             verbose = 0, callbacks=[es])
+    
+  # save
+  #model.save('saved_models/vime_TCGA_Final.h5')
   
   # Predict on x_test
   y_test_hat = model.predict(x_test)
   
   return y_test_hat
-

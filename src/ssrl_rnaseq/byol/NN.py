@@ -104,46 +104,55 @@ class MLP_head(nn.Module) :
         return x
     
     
-    class _4layers(nn.Module) :
-    def __init__(self, input_dim, output_dim, hidden_dim=256) :
+class _4layers(nn.Module):
+    def __init__(self, input_dim, output_dim, hidden_dim=256, dropout_rate=0.2) :
         super().__init__()
         
         self.fc1 = nn.Linear(input_dim, hidden_dim)
         self.fc1_bn = nn.BatchNorm1d(hidden_dim)
+        self.dropout1 = nn.Dropout(dropout)
         self.fc2 = nn.Linear(hidden_dim, hidden_dim)
         self.fc2_bn = nn.BatchNorm1d(hidden_dim)
+        self.dropout2 = nn.Dropout(dropout)
         self.fc3 = nn.Linear(hidden_dim, hidden_dim)
         self.fc3_bn = nn.BatchNorm1d(hidden_dim)
+        self.dropout3 = nn.Dropout(dropout)
         self.fc4 = nn.Linear(hidden_dim, hidden_dim)
         self.fc4_bn = nn.BatchNorm1d(hidden_dim)
+        self.dropout4 = nn.Dropout(dropout)
         self.fc5 = nn.Linear(hidden_dim, output_dim)
         
-    def forward(self, x) :
+    def forward(self, x):
         x = self.fc1(x)
-        x = F.relu(x)
         x = self.fc1_bn(x)
+        x = F.relu(x)
+        x = self.dropout1(x)
         x = self.fc2(x)
-        x = F.relu(x)
         x = self.fc2_bn(x)
+        x = F.relu(x)
+        x = self.dropout2(x)
         x = self.fc3(x)
-        x = F.relu(x)
         x = self.fc3_bn(x)
-        x = self.fc4(x)
         x = F.relu(x)
+        x = self.dropout3(x)
+        x = self.fc4(x)
         x = self.fc4_bn(x)
+        x = F.relu(x)
+        x = self.dropout4(x)
         x = self.fc5(x)
         x = F.softmax(x)
         
         return x
     
 class _Nlayers(torch.nn.Sequential):
-    def __init__(self, input_dim, output_dim, depth=4, hidden_dim=256):
+    def __init__(self, input_dim, output_dim, depth=4, hidden_dim=256, dropout=0.2):
         layers = []
         in_dim = input_dim
         for _ in range(depth):
             layers.append(nn.Linear(in_dim, hidden_dim))
-            layers.append(nn.ReLU())
             layers.append(nn.BatchNorm1d(hidden_dim))
+            layers.append(nn.ReLU())
+            layers.append(nn.Dropout(0.2))
             in_dim = hidden_dim
             
         layers.append(nn.Linear(hidden_dim, output_dim))
@@ -157,8 +166,9 @@ class _Nlayers_noLastLayer(torch.nn.Sequential):
         in_dim = input_dim
         for _ in range(depth):
             layers.append(nn.Linear(in_dim, hidden_dim))
-            layers.append(nn.ReLU())
             layers.append(nn.BatchNorm1d(hidden_dim))
+            layers.append(nn.ReLU())
+            layers.append(nn.Dropout(0.2))
             in_dim = hidden_dim
 
         super().__init__(*layers)

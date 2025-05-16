@@ -227,13 +227,14 @@ class SCARF_modified(nn.Module):
     
 ##################### REWORK #############################
 class MLP_builder(torch.nn.Sequential):
-    def __init__(self, input_dim, hidden_dim, num_hidden, dropout=0.0):
+    def __init__(self, input_dim, hidden_dim, num_hidden, dropout=0.2):
         layers = []
         in_dim = input_dim
         for _ in range(num_hidden):
             layers.append(nn.Linear(in_dim, hidden_dim))
-            layers.append(nn.ReLU())
             layers.append(nn.BatchNorm1d(hidden_dim))
+            layers.append(nn.ReLU())
+            layers.append(nn.Dropout(dropout))
             in_dim = hidden_dim
 
         super().__init__(*layers)
@@ -249,12 +250,12 @@ class SCARF_Custom(nn.Module) :
         features_high,
         head_depth=2,
         corruption_rate=0.6,
-        dropout=0.0
+        dropout=0.2
     ):
         super().__init__()
 
-        self.encoder = MLP_builder(input_dim, emb_dim, encoder_depth)
-        self.pretraining_head = MLP(emb_dim, emb_dim, head_depth)
+        self.encoder = MLP_builder(input_dim, emb_dim, encoder_depth, dropout)
+        self.pretraining_head = MLP(emb_dim, emb_dim, head_depth, dropout)
 
         # uniform distribution over marginal distributions of dataset's features
         self.marginals = Uniform(torch.Tensor(features_low), torch.Tensor(features_high))
@@ -328,31 +329,39 @@ class LastLayer(nn.Module) :
         return x
     
 class SCARF_encoder(nn.Module):
-    def __init__(self, input_dim, hidden_dim=256) :
+    def __init__(self, input_dim, hidden_dim=256, dropout=0.2) :
         super().__init__()
         
         self.fc1 = nn.Linear(input_dim, hidden_dim)
         self.fc1_bn = nn.BatchNorm1d(hidden_dim)
+        self.dropout1 = nn.Dropout(dropout)
         self.fc2 = nn.Linear(hidden_dim, hidden_dim)
         self.fc2_bn = nn.BatchNorm1d(hidden_dim)
+        self.dropout2 = nn.Dropout(dropout)
         self.fc3 = nn.Linear(hidden_dim, hidden_dim)
         self.fc3_bn = nn.BatchNorm1d(hidden_dim)
+        self.dropout3 = nn.Dropout(dropout)
         self.fc4 = nn.Linear(hidden_dim, hidden_dim)
         self.fc4_bn = nn.BatchNorm1d(hidden_dim)
+        self.dropout4 = nn.Dropout(dropout)
         
     def forward(self, x):
         x = self.fc1(x)
-        x = F.relu(x)
         x = self.fc1_bn(x)
+        x = F.relu(x)
+        x = self.dropout1(x)
         x = self.fc2(x)
-        x = F.relu(x)
         x = self.fc2_bn(x)
+        x = F.relu(x)
+        x = self.dropout2(x)
         x = self.fc3(x)
-        x = F.relu(x)
         x = self.fc3_bn(x)
-        x = self.fc4(x)
         x = F.relu(x)
+        x = self.dropout3(x)
+        x = self.fc4(x)
         x = self.fc4_bn(x)
+        x = F.relu(x)
+        x = self.dropout4(x)
         
         return x
     
@@ -381,32 +390,40 @@ class SubTab(nn.Module):
         return x
 
 class _4layers(nn.Module):
-    def __init__(self, input_dim, output_dim, hidden_dim=256) :
+    def __init__(self, input_dim, output_dim, hidden_dim=256, dropout_rate=0.2) :
         super().__init__()
         
         self.fc1 = nn.Linear(input_dim, hidden_dim)
         self.fc1_bn = nn.BatchNorm1d(hidden_dim)
+        self.dropout1 = nn.Dropout(dropout)
         self.fc2 = nn.Linear(hidden_dim, hidden_dim)
         self.fc2_bn = nn.BatchNorm1d(hidden_dim)
+        self.dropout2 = nn.Dropout(dropout)
         self.fc3 = nn.Linear(hidden_dim, hidden_dim)
         self.fc3_bn = nn.BatchNorm1d(hidden_dim)
+        self.dropout3 = nn.Dropout(dropout)
         self.fc4 = nn.Linear(hidden_dim, hidden_dim)
         self.fc4_bn = nn.BatchNorm1d(hidden_dim)
+        self.dropout4 = nn.Dropout(dropout)
         self.fc5 = nn.Linear(hidden_dim, output_dim)
         
     def forward(self, x):
         x = self.fc1(x)
-        x = F.relu(x)
         x = self.fc1_bn(x)
+        x = F.relu(x)
+        x = self.dropout1(x)
         x = self.fc2(x)
-        x = F.relu(x)
         x = self.fc2_bn(x)
+        x = F.relu(x)
+        x = self.dropout2(x)
         x = self.fc3(x)
-        x = F.relu(x)
         x = self.fc3_bn(x)
-        x = self.fc4(x)
         x = F.relu(x)
+        x = self.dropout3(x)
+        x = self.fc4(x)
         x = self.fc4_bn(x)
+        x = F.relu(x)
+        x = self.dropout4(x)
         x = self.fc5(x)
         x = F.softmax(x)
         
@@ -473,12 +490,12 @@ class SCARF_4layers(nn.Module) :
         features_high,
         head_depth=2,
         corruption_rate=0.6,
-        dropout=0.0
+        dropout=0.2
     ):
         super().__init__()
 
         #self.encoder = MLP_baseline(input_dim)
-        self.encoder = SCARF_encoder(input_dim)
+        self.encoder = SCARF_encoder(input_dim, dropout=dropout)
         self.pretraining_head = MLP(emb_dim, emb_dim, head_depth)
 
         # uniform distribution over marginal distributions of dataset's features
